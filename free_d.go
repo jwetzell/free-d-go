@@ -49,7 +49,6 @@ func Encode(message FreeDPosition) []byte {
 }
 
 func Decode(bytes []byte) (FreeDPosition, error) {
-
 	if len(bytes) != 29 {
 		return FreeDPosition{}, errors.New("FreeD packet must be 29 bytes long")
 	}
