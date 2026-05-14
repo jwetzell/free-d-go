@@ -1,7 +1,6 @@
 package freeD
 
 import (
-	"bytes"
 	"encoding/binary"
 	"errors"
 	"math"
@@ -100,23 +99,17 @@ func checksum(bytes []byte) uint8 {
 func rotationToFreeDUnits(rotation float32) []byte {
 	units := int32(rotation * 32768 * 256)
 
-	var buf bytes.Buffer
-	err := binary.Write(&buf, binary.BigEndian, units)
-	if err != nil {
-		panic(err)
-	}
-	return buf.Bytes()[0:3]
+	buf := make([]byte, 4)
+	binary.BigEndian.PutUint32(buf, uint32(units))
+	return buf[0:3]
 }
 
 func positionToFreeDUnits(position float32) []byte {
 	units := int32(position * 64 * 256)
 
-	var buf bytes.Buffer
-	err := binary.Write(&buf, binary.BigEndian, units)
-	if err != nil {
-		panic(err)
-	}
-	return buf.Bytes()[0:3]
+	buf := make([]byte, 4)
+	binary.BigEndian.PutUint32(buf, uint32(units))
+	return buf[0:3]
 }
 
 func freeDUnitsToRotation(upper uint8, middle uint8, lower uint8) float32 {
