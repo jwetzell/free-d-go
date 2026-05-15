@@ -84,3 +84,29 @@ func TestMessageEncoding(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkMessageDecoding(b *testing.B) {
+	data := []byte{0xd1, 0x01, 0x5a, 0x00, 0x00, 0x2d, 0x00, 0x00, 0xa6, 0x00, 0x00, 0x7f, 0xff, 0x40, 0x7f, 0xff, 0x80, 0x7f, 0xff,
+		0xc0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x00, 0x00, 50,
+	}
+	for b.Loop() {
+		Decode(data)
+	}
+}
+
+func BenchmarkMessageEncoding(b *testing.B) {
+	message := FreeDPosition{
+		ID:    1,
+		Pan:   180,
+		Tilt:  90,
+		Roll:  -180,
+		PosX:  131069,
+		PosY:  131070,
+		PosZ:  131071,
+		Zoom:  66051,
+		Focus: 263430,
+	}
+	for b.Loop() {
+		Encode(message)
+	}
+}
