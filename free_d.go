@@ -18,40 +18,37 @@ type FreeDPosition struct {
 	Focus int32
 }
 
-func Encode(message FreeDPosition) []byte {
-	bytes := []byte{}
+func Encode(message FreeDPosition) [29]byte {
+	var bytes [29]byte
 
-	bytes = append(bytes, 0xd1)
-	bytes = append(bytes, message.ID)
+	bytes[0] = 0xd1
+	bytes[1] = message.ID
 
-	bytes = append(bytes, rotationToFreeDUnits(message.Pan)...)
-	bytes = append(bytes, rotationToFreeDUnits(message.Tilt)...)
-	bytes = append(bytes, rotationToFreeDUnits(message.Roll)...)
+	copy(bytes[2:5], rotationToFreeDUnits(message.Pan))
+	copy(bytes[5:8], rotationToFreeDUnits(message.Tilt))
+	copy(bytes[8:11], rotationToFreeDUnits(message.Roll))
 
-	bytes = append(bytes, positionToFreeDUnits(message.PosX)...)
-	bytes = append(bytes, positionToFreeDUnits(message.PosY)...)
-	bytes = append(bytes, positionToFreeDUnits(message.PosZ)...)
+	copy(bytes[11:14], positionToFreeDUnits(message.PosX))
+	copy(bytes[14:17], positionToFreeDUnits(message.PosY))
+	copy(bytes[17:20], positionToFreeDUnits(message.PosZ))
 
-	bytes = append(bytes, uint8(math.Trunc(float64(message.Zoom/65536))))
-	bytes = append(bytes, uint8(int64(message.Zoom/256)%256))
-	bytes = append(bytes, uint8(int32(message.Zoom)%256))
+	bytes[20] = uint8(math.Trunc(float64(message.Zoom / 65536)))
+	bytes[21] = uint8(int64(message.Zoom/256) % 256)
+	bytes[22] = uint8(int32(message.Zoom) % 256)
 
-	bytes = append(bytes, uint8(math.Trunc(float64(message.Focus/65536))))
-	bytes = append(bytes, uint8(int64(message.Focus/256)%256))
-	bytes = append(bytes, uint8(int32(message.Focus)%256))
+	bytes[23] = uint8(math.Trunc(float64(message.Focus / 65536)))
+	bytes[24] = uint8(int64(message.Focus/256) % 256)
+	bytes[25] = uint8(int32(message.Focus) % 256)
 
 	// spare area?
-	bytes = append(bytes, 0, 0)
+	bytes[26] = 0
+	bytes[27] = 0
 
-	bytes = append(bytes, checksum(bytes[0:28]))
+	bytes[28] = checksum(bytes[0:28])
 	return bytes
 }
 
-func Decode(bytes []byte) (FreeDPosition, error) {
-	if len(bytes) != 29 {
-		return FreeDPosition{}, errors.New("FreeD packet must be 29 bytes long")
-	}
-
+func Decode(bytes [29]byte) (FreeDPosition, error) {
 	if bytes[0] != 0xd1 {
 		return FreeDPosition{}, errors.New("only FreeD position messages are currently supported")
 	}

@@ -28,7 +28,13 @@ func main() {
 		if err != nil {
 			slog.Error("error reading from UDP", "err", err)
 		} else if length > 0 {
-			message, err := freeD.Decode(buffer[0:length])
+			if length != 29 {
+				slog.Warn("received UDP packet with unexpected length", "length", length)
+				continue
+			}
+			var messageBytes [29]byte
+			copy(messageBytes[:], buffer[0:length])
+			message, err := freeD.Decode(messageBytes)
 			if err != nil {
 				slog.Error("error decoding", "err", err)
 			}
