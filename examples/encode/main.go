@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	freeDMessage := freeD.FreeDPosition{
+	freeDMessage := freeD.Position{
 		ID:    0xff,
 		Pan:   -10.1,
 		Tilt:  20.2,
@@ -20,7 +20,7 @@ func main() {
 		Focus: 2000,
 	}
 
-	freeDBytes := freeD.Encode(freeDMessage)
+	freeDBytes := freeDMessage.Encode()
 
 	println("send packet somehow")
 	fmt.Printf("%v\n", freeDBytes)

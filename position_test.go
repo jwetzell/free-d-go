@@ -1,23 +1,24 @@
-package freeD
+package freeD_test
 
 import (
-	"fmt"
-	"reflect"
 	"testing"
+
+	freeD "github.com/jwetzell/free-d-go"
+	"github.com/stretchr/testify/require"
 )
 
-func TestMessageDecoding(t *testing.T) {
+func TestGoodPositionDecoding(t *testing.T) {
 	testCases := []struct {
 		description string
 		bytes       [29]byte
-		expected    FreeDPosition
+		expected    freeD.Position
 	}{
 		{
 			description: "simple position message",
 			bytes: [29]byte{0xd1, 0x01, 0x5a, 0x00, 0x00, 0x2d, 0x00, 0x00, 0xa6, 0x00, 0x00, 0x7f, 0xff, 0x40, 0x7f, 0xff, 0x80, 0x7f, 0xff,
 				0xc0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x00, 0x00, 50,
 			},
-			expected: FreeDPosition{
+			expected: freeD.Position{
 				ID:    1,
 				Pan:   180,
 				Tilt:  90,
@@ -33,33 +34,28 @@ func TestMessageDecoding(t *testing.T) {
 
 	for _, testCase := range testCases {
 
-		actual, err := Decode(testCase.bytes)
+		actual := &freeD.Position{}
 
-		if err != nil {
-			t.Errorf("Test '%s' failed to decode chunk properly", testCase.description)
-			fmt.Println(err)
-		}
+		err := actual.UnmarshalBinary(testCase.bytes[:])
 
-		if !reflect.DeepEqual(actual, testCase.expected) {
-			t.Errorf("Test '%s' failed to decode chunk properly", testCase.description)
-			fmt.Printf("expected: %+v\n", testCase.expected)
-			fmt.Printf("actual: %+v\n", actual)
-		}
+		require.NoError(t, err)
+
+		require.Equal(t, &testCase.expected, actual)
 	}
 }
 
-func TestGoodMessageEncoding(t *testing.T) {
+func TestGoodPositionEncoding(t *testing.T) {
 	testCases := []struct {
 		description string
 		expected    [29]byte
-		message     FreeDPosition
+		message     freeD.Position
 	}{
 		{
 			description: "simple position message",
 			expected: [29]byte{0xd1, 0x01, 0x5a, 0x00, 0x00, 0x2d, 0x00, 0x00, 0xa6, 0x00, 0x00, 0x7f, 0xff, 0x40, 0x7f, 0xff, 0x80, 0x7f, 0xff,
 				0xc0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x00, 0x00, 50,
 			},
-			message: FreeDPosition{
+			message: freeD.Position{
 				ID:    1,
 				Pan:   180,
 				Tilt:  90,
@@ -75,13 +71,9 @@ func TestGoodMessageEncoding(t *testing.T) {
 
 	for _, testCase := range testCases {
 
-		actual := Encode(testCase.message)
+		actual := testCase.message.Encode()
 
-		if !reflect.DeepEqual(actual, testCase.expected) {
-			t.Errorf("Test '%s' failed to decode chunk properly", testCase.description)
-			fmt.Printf("expected: %+v\n", testCase.expected)
-			fmt.Printf("actual: %+v\n", actual)
-		}
+		require.Equal(t, testCase.expected, actual)
 	}
 }
 
@@ -90,12 +82,12 @@ func BenchmarkMessageDecoding(b *testing.B) {
 		0xc0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x00, 0x00, 50,
 	}
 	for b.Loop() {
-		Decode(data)
+		freeD.Decode(data)
 	}
 }
 
 func BenchmarkMessageEncoding(b *testing.B) {
-	message := FreeDPosition{
+	message := freeD.Position{
 		ID:    1,
 		Pan:   180,
 		Tilt:  90,
@@ -107,7 +99,7 @@ func BenchmarkMessageEncoding(b *testing.B) {
 		Focus: 263430,
 	}
 	for b.Loop() {
-		Encode(message)
+		message.Encode()
 	}
 }
 
@@ -121,6 +113,6 @@ func FuzzMessageDecoding(f *testing.F) {
 		}
 		var dataArray [29]byte
 		copy(dataArray[:], data)
-		Decode(dataArray)
+		freeD.Decode(dataArray)
 	})
 }
